@@ -4,7 +4,6 @@ import db from '@/drizzle/db';
 import { hashPassword } from '@/utils/auth';
 import { users } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
-import { createSession } from '@/utils/session';
 import { z } from 'zod';
 
 // Define Zod schema
