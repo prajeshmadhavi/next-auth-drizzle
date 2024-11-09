@@ -27,37 +27,49 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { setSession } from '@/app/actions/auth-action';
 
-const formSchema = z.object({
-  email: z.string().email({
-    message: 'Invalid email address.',
-  }),
-  password: z.string().min(8, {
-    message: 'The password field must be at least 8 characters.',
-  }),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(4, {
+      message: 'Name must be at least 4 characters.',
+    }),
+    email: z.string().email({
+      message: 'Invalid email address.',
+    }),
+    password: z.string().min(8, {
+      message: 'The password field must be at least 8 characters.',
+    }),
+    confirm_password: z.string().min(8, {
+      message: 'The confirm password field must be at least 8 characters.',
+    }),
+  })
+  .refine((data) => data.password === data.confirm_password, {
+    path: ['confirm_password'],
+    message: 'The password field confirmation does not match.',
+  });
 
 type FormSchema = z.infer<typeof formSchema>;
 
-export function LoginForm() {
+export function RegisterForm() {
   const router = useRouter();
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
+      confirm_password: '',
     },
   });
 
   // Mutation
   const { mutate, error, isPending } = useMutation({
     mutationFn: async (values: FormSchema) => {
-      const response = await axios.post('/api/login', values);
+      const response = await axios.post('/api/register', values);
       return response.data;
     },
     onSuccess: (response) => {
       console.log(response.token);
-      // setToken(response.token);
       setSession(response.token, response.user);
       router.push('/dashboard');
     },
@@ -75,13 +87,26 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card className="mx-auto max-w-sm">
           <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
+            <CardTitle className="text-2xl">Register</CardTitle>
             <CardDescription>
-              Enter your email below to login to your account
+              Enter your email below to create your account
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -92,6 +117,7 @@ export function LoginForm() {
                       <Input placeholder="m@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
+
                     {error && (
                       <FormMessage>
                         {
@@ -106,7 +132,6 @@ export function LoginForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="password"
@@ -124,14 +149,31 @@ export function LoginForm() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="confirm_password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="confirm password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? 'Loading...' : 'Login'}
+                {isPending ? 'Loading...' : 'Register'}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="underline">
-                Sign up
+              Already have an account?{' '}
+              <Link href="/login" className="underline">
+                Login
               </Link>
             </div>
           </CardContent>

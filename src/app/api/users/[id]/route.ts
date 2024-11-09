@@ -1,6 +1,6 @@
-import { checkValidToken } from '@/app/actions/auth-action';
 import db from '@/drizzle/db';
 import * as schema from '@/drizzle/schema';
+import { checkValidToken } from '@/utils/session';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 

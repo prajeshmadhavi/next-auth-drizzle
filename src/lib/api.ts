@@ -1,4 +1,5 @@
-import { logout, verifyToken } from '@/app/actions/auth-action';
+import { removeSession } from '@/app/actions/auth-action';
+import { verifySession } from '@/app/actions/session-action';
 import axios, { AxiosInstance } from 'axios';
 import { getCookie } from 'cookies-next';
 
@@ -14,10 +15,10 @@ api.interceptors.request.use(
     const token = getCookie('token');
 
     if (token) {
-      const isValid = await verifyToken(token as string);
+      const isValid = await verifySession(token as string);
 
       if (!isValid) {
-        logout();
+        removeSession();
       }
 
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -36,7 +37,7 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response && [401, 403].includes(error.response.status)) {
-      logout();
+      removeSession();
     }
 
     return Promise.reject(error);

@@ -10,7 +10,7 @@ import { z } from 'zod';
 // Define Zod schema for login
 const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
 export async function POST(req: Request) {
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     if (existingUser.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'These credentials do not match our records.' },
         { status: 401 },
       );
     }
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     );
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'These credentials do not match our records.' },
         { status: 401 },
       );
     }

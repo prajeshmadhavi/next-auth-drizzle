@@ -5,12 +5,13 @@ import { hashPassword } from '@/utils/auth';
 import { users } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { createSession } from '@/utils/session';
 
 // Define Zod schema
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email format'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
 export async function POST(req: Request) {
@@ -65,11 +66,12 @@ export async function POST(req: Request) {
       );
     }
     // 3. Create a session
-    // await createSession(user.id);
+    const token = await createSession(user.id);
 
     return NextResponse.json({
       message: 'User registered successfully',
-      data: user,
+      user,
+      token,
     });
   } catch (error) {
     // Handle validation errors

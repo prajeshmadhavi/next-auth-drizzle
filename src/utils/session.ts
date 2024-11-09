@@ -126,3 +126,20 @@ export async function deleteSession(token: string) {
 
   return true;
 }
+
+export async function checkValidToken(req: Request) {
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+
+  if (!token) {
+    return { isValid: false, error: 'Unauthorized' };
+  }
+
+  // Verify the session
+  const session = await verifySession(token);
+
+  if (!session) {
+    return { isValid: false, error: 'Invalid session' };
+  }
+
+  return { isValid: true, session };
+}

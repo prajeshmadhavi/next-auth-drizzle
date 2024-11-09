@@ -1,5 +1,4 @@
-// app/api/protected/route.ts
-import { checkValidToken } from '@/app/actions/auth-action';
+import { checkValidToken } from '@/utils/session';
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
