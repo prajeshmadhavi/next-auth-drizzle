@@ -1,4 +1,6 @@
-import { deleteCookie, setCookie } from 'cookies-next';
+'use server';
+
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 type User = {
@@ -8,13 +10,13 @@ type User = {
 };
 
 export async function setSession(token: string, user: User) {
-  setCookie('token', token);
-  setCookie('user', user);
+  (await cookies()).set('token', token);
+  (await cookies()).set('user', JSON.stringify(user));
 }
 
 export async function removeSession() {
-  deleteCookie('token');
-  deleteCookie('user');
+  (await cookies()).delete('token');
+  (await cookies()).delete('user');
 
   redirect('/');
 }
