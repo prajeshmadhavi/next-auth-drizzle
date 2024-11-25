@@ -13,8 +13,6 @@ export async function POST(req: Request) {
   // Delete the session
   const result = await deleteSession(token);
 
-  console.log('xxx', result);
-
   if (result) {
     return NextResponse.json({ message: 'Logged out successfully' });
   } else {

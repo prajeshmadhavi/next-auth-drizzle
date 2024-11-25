@@ -59,7 +59,14 @@ export async function POST(req: Request) {
     const token = await createSession(user.id);
 
     // Optionally set the session ID as a cookie (for frontend session management)
-    return NextResponse.json({ message: 'Login successful', token, user });
+    return NextResponse.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
