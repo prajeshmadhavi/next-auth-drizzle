@@ -68,9 +68,8 @@ export function RegisterForm() {
       const response = await axios.post('/api/register', values);
       return response.data;
     },
-    onSuccess: (response) => {
-      console.log(response.token);
-      setSession(response.token, response.user);
+    onSuccess: async (response) => {
+      await setSession(response.token, response.user);
       router.push('/dashboard');
     },
   });
@@ -79,8 +78,6 @@ export function RegisterForm() {
     console.log(values);
     mutate(values);
   }
-
-  console.log(error);
 
   return (
     <Form {...form}>

@@ -55,10 +55,8 @@ export function LoginForm() {
       const response = await axios.post('/api/login', values);
       return response.data;
     },
-    onSuccess: (response) => {
-      console.log(response.token);
-      // setToken(response.token);
-      setSession(response.token, response.user);
+    onSuccess: async (response) => {
+      await setSession(response.token, response.user);
       router.push('/dashboard');
     },
   });
