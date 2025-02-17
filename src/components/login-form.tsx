@@ -28,15 +28,26 @@ import { useRouter } from 'next/navigation';
 import { setSession } from '@/app/actions/auth-action';
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: 'Invalid email address.',
+  userwaregno: z.string().min(1, {
+    message: 'Userware Registration Number is required.',
   }),
-  password: z.string().min(8, {
-    message: 'The password field must be at least 8 characters.',
+  password: z.string().min(1, {
+    message: 'Password is required.',
   }),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
+
+type LoginResponse = {
+  message: string;
+  token: string;
+  user: {
+    id: number;
+    userwaregno: string;
+    client_name: string;
+    api_key: string;
+  };
+};
 
 export function LoginForm() {
   const router = useRouter();
@@ -44,7 +55,7 @@ export function LoginForm() {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      userwaregno: '',
       password: '',
     },
   });
@@ -55,7 +66,7 @@ export function LoginForm() {
       const response = await axios.post('/api/login', values);
       return response.data;
     },
-    onSuccess: async (response) => {
+    onSuccess: async (response: LoginResponse) => {
       await setSession(response.token, response.user);
       router.push('/dashboard');
     },
@@ -82,12 +93,12 @@ export function LoginForm() {
             <div className="grid gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="userwaregno"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Userware Registration Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="m@example.com" {...field} />
+                      <Input placeholder="Enter your userware registration number" {...field} />
                     </FormControl>
                     <FormMessage />
                     {error && (

@@ -2,7 +2,7 @@
 import 'server-only';
 import { jwtVerify, SignJWT } from 'jose';
 import db from '@/drizzle/db';
-import { sessions } from '@/drizzle/schema';
+import { sessions, clients } from '@/drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -85,7 +85,28 @@ export async function verifySession(token: string) {
     return null; // Session not found or invalid
   }
 
-  return session[0]; // Return session if valid
+  // Get client data
+  const client = await db
+    .select({
+      id: clients.id,
+      client_name: clients.client,
+      userwaregno: clients.userwaregno,
+      api_key: clients.api_key,
+    })
+    .from(clients)
+    .where(
+      and(
+        eq(clients.id, session[0].userId),
+        eq(clients.status, 'active')
+      )
+    )
+    .limit(1);
+
+  if (client.length === 0) {
+    return null; // Client not found or not active
+  }
+
+  return { ...session[0], client: client[0] };
 }
 
 export async function deleteSession(token: string) {
@@ -113,7 +134,7 @@ export async function deleteSession(token: string) {
     return false;
   }
 
-  // Retrieve session from the database
+  // Delete the session from the database
   await db
     .delete(sessions)
     .where(

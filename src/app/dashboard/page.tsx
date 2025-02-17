@@ -36,188 +36,147 @@ import { usePathname } from 'next/navigation';
 
 export default function Dashboard() {
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  const userCookie = getCookie('user')
-    ? JSON.parse(getCookie('user') as string)
-    : null;
+  React.useEffect(() => {
+    const userStr = getCookie('user');
+    if (userStr) {
+      setUser(JSON.parse(userStr as string));
+    }
+  }, []);
 
-  const logoutMutation = useMutation({
-    mutationFn: () => api.post('/api/logout'),
+  const { mutate: logout } = useMutation({
+    mutationFn: async () => {
+      const response = await api.post('/api/logout');
+      return response.data;
+    },
     onSuccess: () => {
-      console.log('Logout success');
       removeSession();
     },
   });
 
-  const { data: userData } = useQuery({
-    queryKey: ['user', userCookie?.id],
-    queryFn: () =>
-      api.get(`/api/users/${userCookie?.id}`).then((res) => res.data),
-    enabled: !!userCookie?.id, // Only run the query if user ID exists
-  });
-
-  const menuItems = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Projects', href: '#' },
-    { name: 'Team', href: '#' },
-    { name: 'Reports', href: '#' },
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
-      <nav className="border-b">
-        <div className="container mx-auto flex h-16 items-center px-4">
-          {/* Mobile Menu */}
-          <div className="md:hidden flex items-center">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mr-2"
-                >
-                  <Menu className="h-8 w-8" />
-                  <span className="sr-only">Toggle Menu</span>
-                </Button>
-              </SheetTrigger>
-
-              <SheetContent side="left">
-                <SheetTitle className="sr-only">
-                  Mobile Navigation Menu
-                </SheetTitle>
-                <SheetDescription className="sr-only">
-                  Description
-                </SheetDescription>
-                <div className="mt-6 flex flex-col space-y-4">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="text-sm font-medium transition-colors hover:text-primary"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+    <div>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 hidden md:flex">
+            <Link className="mr-6 flex items-center space-x-2" href="/">
+              <Image
+                className="dark:invert"
+                src="/next.svg"
+                alt="Next.js logo"
+                width={100}
+                height={21}
+                priority
+              />
+            </Link>
+            <nav className="flex items-center space-x-6 text-sm font-medium">
+              <Link
+                className={`transition-colors hover:text-foreground/80 ${
+                  pathname === '/dashboard' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+                href="/dashboard"
+              >
+                Dashboard
+              </Link>
+            </nav>
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+              >
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0">
+              <Link className="flex items-center" href="/">
+                <Image
+                  className="dark:invert"
+                  src="/next.svg"
+                  alt="Next.js logo"
+                  width={100}
+                  height={21}
+                  priority
+                />
+              </Link>
+              <div className="my-4 w-full">
+                <div className="flex flex-col space-y-3">
+                  <Link
+                    href="/dashboard"
+                    className={`text-muted-foreground transition-colors hover:text-foreground ${
+                      pathname === '/dashboard' ? 'text-foreground' : 'text-foreground/60'
+                    }`}
+                  >
+                    Dashboard
+                  </Link>
                 </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          {/* NEXT Logo */}
-          <Link href="/">
-            <Image
-              className="dark:invert mr-4"
-              src="/next.svg"
-              alt="Next.js logo"
-              width={80}
-              height={32}
-              priority
-            />
-          </Link>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4 flex-grow ml-4 h-16">
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href;
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`h-16 inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ${
-                    isActive
-                      ? 'border-indigo-400 text-gray-900 focus:border-indigo-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* User Menu (Desktop and Mobile) */}
-          <div className="ml-auto flex items-center">
-            <UserMenu user={userData} logout={logoutMutation.mutate} />
+              </div>
+            </SheetContent>
+          </Sheet>
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <div className="w-full flex-1 md:w-auto md:flex-none">
+              {/* <CommandMenu /> */}
+            </div>
+            <nav className="flex items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-8 w-8 rounded-full"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={`https://avatar.vercel.sh/${user?.userwaregno}.png`}
+                        alt={user?.client_name}
+                      />
+                      <AvatarFallback>
+                        {user?.client_name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user?.client_name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.userwaregno}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => logout()}>
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </nav>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* Main Content */}
       <main className="container mx-auto my-8 px-4">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle>Total Users</CardTitle>
-              <CardDescription>Number of registered users</CardDescription>
+              <CardTitle>Client Details</CardTitle>
+              <CardDescription>Your account information</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">1,234</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue</CardTitle>
-              <CardDescription>Total revenue this month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">$12,345</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Projects</CardTitle>
-              <CardDescription>Currently ongoing projects</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">42</p>
+              <div className="space-y-2">
+                <p><strong>Name:</strong> {user?.client_name}</p>
+                <p><strong>Reg No:</strong> {user?.userwaregno}</p>
+                <p><strong>API Key:</strong> {user?.api_key}</p>
+              </div>
             </CardContent>
           </Card>
         </div>
       </main>
     </div>
-  );
-}
-
-function UserMenu({
-  user,
-  logout,
-}: {
-  user?: { name: string; email: string };
-  logout: () => void;
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarImage
-              src="https://avatar.iran.liara.run/public/boy"
-              alt={user?.name || 'User'}
-            />
-            <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {user?.name || 'Guest'}
-            </p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user?.email || 'No email'}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Settings</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }

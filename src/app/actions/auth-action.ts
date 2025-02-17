@@ -5,8 +5,9 @@ import { redirect } from 'next/navigation';
 
 type User = {
   id: number;
-  email: string;
-  name: string;
+  userwaregno: string;
+  client_name: string;
+  api_key: string;
 };
 
 export async function setSession(token: string, user: User) {
@@ -17,6 +18,5 @@ export async function setSession(token: string, user: User) {
 export async function removeSession() {
   (await cookies()).delete('token');
   (await cookies()).delete('user');
-
-  redirect('/');
+  redirect('/login');
 }

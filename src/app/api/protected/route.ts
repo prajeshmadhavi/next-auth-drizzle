@@ -8,5 +8,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error }, { status: 401 });
   }
 
-  return NextResponse.json({ message: 'Protected content', session });
+  return NextResponse.json({
+    message: 'Protected content',
+    session,
+    client: session?.client,
+  });
 }

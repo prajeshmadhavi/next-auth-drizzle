@@ -1,7 +1,7 @@
 import db from '@/drizzle/db';
-import * as schema from '@/drizzle/schema';
+import { clients } from '@/drizzle/schema';
 import { checkValidToken } from '@/utils/session';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -16,15 +16,22 @@ export async function GET(
     return NextResponse.json({ error }, { status: 401 });
   }
 
-  const userId = parseInt(id, 10);
+  const clientId = parseInt(id, 10);
 
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.id, userId),
+  const client = await db.query.clients.findFirst({
+    where: and(
+      eq(clients.id, clientId),
+      eq(clients.status, 'active')
+    ),
     columns: {
       id: true,
-      name: true,
-      email: true,
+      client: true,
+      userwaregno: true,
+      api_key: true,
     },
   });
-  return NextResponse.json(user);
+  return NextResponse.json(client ? {
+    ...client,
+    client_name: client.client,
+  } : null);
 }

@@ -1,0 +1,32 @@
+implement following changes in authentication mechanism.
+
+1. Update the authentication mechanism to use the `clients` table instead of the `users` table.
+2. Replace `users.email` with `client.userwaregno` and users.password with client.password
+3. Use plain text passwords instead of hashed passwords for `client.password`.
+4. Replace `users.name` with `clients.client_name`.
+5. Update backend validation code for login and signup inputs and flow accordingly, also change every reference to users table to clients table.
+6. Continue using the `sessions` table but do changes required to cope with new client table.
+7. make sure you update all the code and references to users table to clients table.
+8. keep clients.id,clients.api_key,clients.userwaregno data in logged in user session. 
+
+
+
+--
+
+Error in login: [Error: Cannot add or update a child row: a foreign key constraint fails (`cbwq`.`sessions`, CONSTRAINT `sessions_user_id_users_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`))] {
+  code: 'ER_NO_REFERENCED_ROW_2',
+  errno: 1452,
+  sql: "insert into `sessions` (`session_id`, `user_id`, `created_at`) values ('61546624-d8d9-4aac-a59d-33563504bf51', 1894, default)",
+  sqlState: '23000',
+  sqlMessage: 'Cannot add or update a child row: a foreign key constraint fails (`cbwq`.`sessions`, CONSTRAINT `sessions_user_id_users_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`))'
+}
+Login error details: Cannot add or update a child row: a foreign key constraint fails (`cbwq`.`sessions`, CONSTRAINT `sessions_user_id_users_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`))
+ POST /api/login 500 in 3489ms
+
+
+-- suggestion : I think it should refer to clients.id instead of users.id
+
+
+--
+
+

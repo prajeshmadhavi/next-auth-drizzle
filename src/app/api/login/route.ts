@@ -1,16 +1,15 @@
 // app/api/login/route.ts
 import { NextResponse } from 'next/server';
 import db from '@/drizzle/db';
-import { users } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
-import { verifyPassword } from '@/utils/auth';
+import { clients } from '@/drizzle/schema';
+import { eq, and } from 'drizzle-orm';
 import { createSession } from '@/utils/session';
 import { z } from 'zod';
 
 // Define Zod schema for login
 const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
+  userwaregno: z.string().min(1, 'Userware Registration Number is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 export async function POST(req: Request) {
@@ -25,30 +24,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password } = validationSchema.data;
+    const { userwaregno, password } = validationSchema.data;
 
-    // Check if the user exists
-    const existingUser = await db
+    // Check if the client exists and is active
+    const existingClient = await db
       .select()
-      .from(users)
-      .where(eq(users.email, email))
+      .from(clients)
+      .where(
+        and(
+          eq(clients.userwaregno, userwaregno),
+          eq(clients.status, 'active')
+        )
+      )
       .limit(1);
 
-    if (existingUser.length === 0) {
+    if (existingClient.length === 0) {
       return NextResponse.json(
         { error: 'These credentials do not match our records.' },
         { status: 401 },
       );
     }
 
-    const user = existingUser[0];
+    const client = existingClient[0];
 
-    // Verify password
-    const isPasswordValid = await verifyPassword(
-      password,
-      user.password as string,
-    );
-    if (!isPasswordValid) {
+    // Verify password (plain text comparison)
+    if (password !== client.password) {
       return NextResponse.json(
         { error: 'These credentials do not match our records.' },
         { status: 401 },
@@ -56,15 +56,17 @@ export async function POST(req: Request) {
     }
 
     // Create a session
-    const token = await createSession(user.id);
+    const token = await createSession(client.id);
 
-    // Optionally set the session ID as a cookie (for frontend session management)
+    // Return response with client data
     return NextResponse.json({
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
-        email: user.email,
+        id: client.id,
+        userwaregno: client.userwaregno,
+        client_name: client.client,
+        api_key: client.api_key,
       },
     });
   } catch (error) {
